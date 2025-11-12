@@ -1,8 +1,7 @@
-import prisma from "../../../../core/providers/prisma";
-import { PrismaNotificationRepository } from "../../repository/prisma/notification-repository";
+import { MongooseNotificationRepository } from "../../repository/mongoose/notification-repository";
 import { CreateTopic } from "../use-cases/create-topic";
 
 export function makeCreateTopic() {
-  const notificationRepository = new PrismaNotificationRepository(prisma);
+  const notificationRepository = new MongooseNotificationRepository();
   return new CreateTopic(notificationRepository);
 }

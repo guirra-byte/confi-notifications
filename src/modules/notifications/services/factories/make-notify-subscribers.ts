@@ -1,10 +1,9 @@
-import { PrismaNotificationRepository } from "../../repository/prisma/notification-repository";
+import { MongooseNotificationRepository } from "../../repository/mongoose/notification-repository";
 import { NotifySubscribers } from "../use-cases/notify-subscribers";
-import prisma from "../../../../core/providers/prisma";
 
 function makeNotifySubscribers() {
-  const notificationRepository = new PrismaNotificationRepository(prisma);
-  return new NotifySubscribers(prisma, notificationRepository);
+  const notificationRepository = new MongooseNotificationRepository();
+  return new NotifySubscribers(notificationRepository);
 }
 
 const notifySubscribers = makeNotifySubscribers();

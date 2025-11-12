@@ -1,8 +1,7 @@
-import prisma from "../../../../core/providers/prisma";
-import { PrismaNotificationRepository } from "../../repository/prisma/notification-repository";
+import { MongooseNotificationRepository } from "../../repository/mongoose/notification-repository";
 import { DeleteNotifications } from "../use-cases/delete-notifications";
 
 export function makeDeleteNotifications() {
-  const notificationRepository = new PrismaNotificationRepository(prisma);
+  const notificationRepository = new MongooseNotificationRepository();
   return new DeleteNotifications(notificationRepository);
 }
