@@ -194,10 +194,7 @@ Frontend (EventSource) ←──── SSE Connection ←──── NotifySubs
 | Firewall/Proxy | ✅ HTTP padrão | ⚠️ Pode bloquear | ✅ HTTP padrão |
 
 **Event Sourcing no Frontend:**
-O cliente pode manter histórico de eventos SSE recebidos, possibilitando:
-- Replay de notificações offline
-- Sincronização de estado local
-- Auditoria de eventos recebidos
+O cliente pode manter histórico de eventos SSE recebidos, possibilitando replay de notificações offline e sincronização de estado local. Veja mais detalhes em [NOTES.md](./NOTES.md).
 
 #### Implementação do SSE
 
@@ -552,14 +549,13 @@ Esta arquitetura é ideal quando você quer:
 
 ## 🔧 Melhorias Futuras
 
-- [ ] Adicionar endpoint SSE `/sse/connect` (atualmente implícito)
-- [ ] Implementar retry policy com DLQ (Dead Letter Queue) no RabbitMQ
-- [ ] Adicionar testes unitários e e2e
-- [ ] Implementar Redis para SSE Map distribuído (multi-instância)
-- [ ] Adicionar métricas (Prometheus) e tracing (OpenTelemetry)
-- [ ] Implementar rate limiting por subscriber
-- [ ] Event Sourcing completo: armazenar todos eventos em event store
-- [ ] Implementar Frontend
+Para ver a lista completa de melhorias e implementações futuras planejadas, consulte o arquivo [NOTES.md](./NOTES.md).
+
+**Principais itens:**
+- Frontend completo com conexão SSE
+- Camada de cache com Redis (write-through)
+- Documentação da API com Swagger/OpenAPI
+- Suite completa de testes (unitários, integração e performance)
 
 ---
 
