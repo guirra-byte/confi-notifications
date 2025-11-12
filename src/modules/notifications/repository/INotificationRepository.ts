@@ -1,17 +1,26 @@
-import { Notification as PrismaNotification, Topic as PrismaTopic, SubscriberTopic as PrismaSubscriberTopic } from "../../../generated/prisma/client";
-import { NotificationCreateInput, TopicCreateInput } from "../../../generated/prisma/models";
+import { INotification, ITopic, ISubscriberTopic } from "../../../core/models";
+
+export interface NotificationCreateInput {
+  subject: string;
+  topicId: string;
+}
+
+export interface TopicCreateInput {
+  domain: string;
+  description?: string;
+}
 
 export interface INotificationRepository {
-  create(notification: NotificationCreateInput): Promise<PrismaNotification>;
-  createTopic(topic: TopicCreateInput): Promise<PrismaTopic>;
+  create(notification: NotificationCreateInput): Promise<INotification>;
+  createTopic(topic: TopicCreateInput): Promise<ITopic>;
 
-  findSubscribedTopic(topicId: string): Promise<PrismaSubscriberTopic[]>;
-  findTopicByDomain(domain: string): Promise<PrismaTopic | null>;
-  findTopicById(topicId: string): Promise<PrismaTopic | null>;
+  findSubscribedTopic(topicId: string): Promise<ISubscriberTopic[]>;
+  findTopicByDomain(domain: string): Promise<ITopic | null>;
+  findTopicById(topicId: string): Promise<ITopic | null>;
 
-  findById(id: string): Promise<PrismaNotification | null>;
-  findAll(): Promise<PrismaNotification[]>;
-  findAllByTopicId(topicId: string): Promise<PrismaNotification[]>;
+  findById(id: string): Promise<INotification | null>;
+  findAll(): Promise<INotification[]>;
+  findAllByTopicId(topicId: string): Promise<INotification[]>;
 
   markAsRead(ids: string[]): Promise<void>;
   markAsDeleted(ids: string[]): Promise<void>;
