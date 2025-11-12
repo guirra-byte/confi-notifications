@@ -1,6 +1,6 @@
 # 🔔 Confi Notifications
 
-Sistema de notificações em tempo real com **Arquitetura Orientada a Eventos** e **Monólito Modular**, desenvolvido para gerenciar notificações baseadas em tópicos com processamento assíncrono via RabbitMQ e comunicação bidirecional via SSE (Server-Sent Events).
+Sistema de notificações em tempo real com **Arquitetura Orientada a Eventos** e **Monólito Modular**, desenvolvido para gerenciar notificações baseadas em tópicos com processamento assíncrono via RabbitMQ e comunicação real-time com cliente via SSE (Server-Sent Events).
 
 ## 📋 Sobre o Projeto
 
