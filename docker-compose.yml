@@ -1,0 +1,30 @@
+services:
+  mongodb:
+    image: mongo:6.0
+    container_name: confi-server-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: confi-server-db
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    volumes:
+      - mongo_data:/data/db
+    
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    container_name: confi-server-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"   
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: rootpassword
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  rabbitmq_data:
+  mongo_data:
