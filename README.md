@@ -554,6 +554,7 @@ Esta arquitetura é ideal quando você quer:
 - [ ] Adicionar métricas (Prometheus) e tracing (OpenTelemetry)
 - [ ] Implementar rate limiting por subscriber
 - [ ] Event Sourcing completo: armazenar todos eventos em event store
+- [ ] Implementar Frontend
 
 ---
 
