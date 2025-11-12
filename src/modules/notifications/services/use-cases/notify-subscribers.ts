@@ -1,7 +1,8 @@
+import mongoose from 'mongoose';
 import { FastifyReply } from "fastify";
-import { PrismaClient } from "../../../../generated/prisma/client";
 import { NotificationSenderError } from "../../errors";
 import { INotificationRepository } from "../../repository/INotificationRepository";
+import { TopicModel, SubscriberModel, SubscriberTopicModel } from "../../../../core/models";
 
 const corsHeaders: { key: string; value: string }[] = [
   { key: "Access-Control-Allow-Origin", value: "*" },
@@ -41,16 +42,13 @@ class SseHandler {
 
 export class NotifySubscribers extends SseHandler {
   constructor(
-    private readonly prisma: PrismaClient,
     private readonly notificationRepository: INotificationRepository,
   ) { 
     super();
   }
 
   async stablishSseConnection(subscriberId: string, originReply: FastifyReply) {
-    const subscriber = await this.prisma.subscriber.findUnique({
-      where: { id: subscriberId },
-    });
+    const subscriber = await SubscriberModel.findById(subscriberId);
 
     if (!subscriber) {
       throw new Error("Subscriber not found");
@@ -60,22 +58,18 @@ export class NotifySubscribers extends SseHandler {
   }
 
   async notify(topicId: string, notificationId: string) {
-    const topic = await this.prisma.topic.findUnique({
-      where: { id: topicId },
-    });
+    const topic = await TopicModel.findById(topicId);
 
     if (!topic) {
       throw new Error("Topic not found");
     }
 
     const [subscribers, notification] = await Promise.all([
-      this.prisma.subscriberTopic.findMany({
-        where: { topicId: topicId },
-      }),
+      SubscriberTopicModel.find({ topicId: new mongoose.Types.ObjectId(topicId) }),
       this.notificationRepository.findById(notificationId)
     ]);
 
-    if (!subscribers) {
+    if (!subscribers || subscribers.length === 0) {
       throw new Error("No subscribers found for this topic");
     }
 
@@ -97,7 +91,7 @@ export class NotifySubscribers extends SseHandler {
               }
             });
 
-            resolve({ notificationId: notification.id });
+            resolve({ notificationId: notification._id.toString() });
           }
         }
         catch (error: unknown) {

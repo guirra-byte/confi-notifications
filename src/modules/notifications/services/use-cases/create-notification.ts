@@ -1,5 +1,6 @@
-import { PrismaClient } from "../../../../generated/prisma/client";
+import mongoose from 'mongoose';
 import { INotificationRepository } from "../../repository/INotificationRepository";
+import { TopicNotificationModel, SubscriberNotificationModel } from "../../../../core/models";
 
 interface CreateNotificationRequest {
   topicId: string;
@@ -8,8 +9,7 @@ interface CreateNotificationRequest {
 
 export class CreateNotification {
   constructor(
-    private readonly notificationRepository: INotificationRepository,
-    private readonly prisma: PrismaClient
+    private readonly notificationRepository: INotificationRepository
   ) { }
 
   async execute(data: CreateNotificationRequest) {
@@ -23,11 +23,9 @@ export class CreateNotification {
       subject: data.subject,
     });
 
-    await this.prisma.topicNotification.create({
-      data: {
-        topicId: data.topicId,
-        notificationId: notification.id,
-      },
+    await TopicNotificationModel.create({
+      topicId: new mongoose.Types.ObjectId(data.topicId),
+      notificationId: notification._id,
     });
 
     const topicSubscriptions = await this.notificationRepository.findSubscribedTopic(data.topicId);
@@ -36,11 +34,9 @@ export class CreateNotification {
     }
 
     await Promise.all(topicSubscriptions.map(async ({ subscriberId }) => {
-      await this.prisma.subscriberNotification.create({
-        data: {
-          subscriberId: subscriberId,
-          notificationId: notification.id,
-        },
+      await SubscriberNotificationModel.create({
+        subscriberId: new mongoose.Types.ObjectId(subscriberId.toString()),
+        notificationId: notification._id,
       });
     }));
 

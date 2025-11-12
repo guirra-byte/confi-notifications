@@ -1,4 +1,5 @@
-import { PrismaClient } from "../../../../generated/prisma/client";
+import mongoose from 'mongoose';
+import { SubscriberTopicModel, NotificationModel, SubscriberNotificationModel } from "../../../../core/models";
 
 interface FetchAllUserNotificationsRequest {
   subId: string;
@@ -12,29 +13,71 @@ interface FetchAllUserNotificationsRequest {
 }
 
 export class FetchAllUserNotifications {
-  constructor(private readonly prisma: PrismaClient) { }
   async execute(data: FetchAllUserNotificationsRequest) {
-    const subscriberTopics = await this.prisma.subscriberTopic.findMany({
-      where: { subscriberId: data.subId },
+    const subscriberTopics = await SubscriberTopicModel.find({
+      subscriberId: new mongoose.Types.ObjectId(data.subId),
     });
 
-    if (!subscriberTopics) {
-      return [];
+    if (!subscriberTopics || subscriberTopics.length === 0) {
+      return {
+        notifications: [],
+        total: 0,
+        page: data.page ?? 1,
+        limit: data.limit ?? 10,
+      };
     }
 
     const topicIds = subscriberTopics.map(topic => topic.topicId);
-    const notifications = await this.prisma.notification.findMany({
-      where: { topicId: { in: topicIds }, ...data.options },
-      orderBy: { createdAt: "desc" },
-      skip: (data.page ?? 1 - 1) * (data.limit ?? 10),
-      take: data.limit ?? 10,
-    });
+    
+    // Build query for notifications with filters
+    const notificationQuery: any = { topicId: { $in: topicIds } };
+    
+    // Apply filters from SubscriberNotification
+    if (data.options.isRead !== undefined || data.options.isSent !== undefined || data.options.isDeleted !== undefined) {
+      const subscriberNotificationQuery: any = { subscriberId: new mongoose.Types.ObjectId(data.subId) };
+      
+      if (data.options.isRead !== undefined) {
+        subscriberNotificationQuery.isRead = data.options.isRead;
+      }
+      if (data.options.isSent !== undefined) {
+        subscriberNotificationQuery.isSent = data.options.isSent;
+      }
+      if (data.options.isDeleted !== undefined) {
+        subscriberNotificationQuery.isDeleted = data.options.isDeleted;
+      }
+
+      const subscriberNotifications = await SubscriberNotificationModel.find(subscriberNotificationQuery);
+      const notificationIds = subscriberNotifications.map(sn => sn.notificationId);
+      
+      if (notificationIds.length === 0) {
+        return {
+          notifications: [],
+          total: 0,
+          page: data.page ?? 1,
+          limit: data.limit ?? 10,
+        };
+      }
+      
+      notificationQuery._id = { $in: notificationIds };
+    }
+
+    const page = data.page ?? 1;
+    const limit = data.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const [notifications, total] = await Promise.all([
+      NotificationModel.find(notificationQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      NotificationModel.countDocuments(notificationQuery),
+    ]);
 
     return {
       notifications,
-      total: notifications.length,
-      page: data.page ?? 1,
-      limit: data.limit ?? 10,
+      total,
+      page,
+      limit,
     };
   }
 }

@@ -1,5 +1,6 @@
+import mongoose from 'mongoose';
 import { INotificationRepository } from "../../repository/INotificationRepository";
-import { PrismaClient } from "../../../../generated/prisma/client";
+import { SubscriberTopicModel } from "../../../../core/models";
 import { AlreadySubscribedError, TopicNotFoundError } from "../../errors";
 
 interface ITopicSubscriptionRequest {
@@ -9,8 +10,7 @@ interface ITopicSubscriptionRequest {
 
 export class TopicSubscription {
   constructor(
-    private readonly notificationRepository: INotificationRepository,
-    private readonly prisma: PrismaClient
+    private readonly notificationRepository: INotificationRepository
   ) { }
 
   async execute(data: ITopicSubscriptionRequest[]) {
@@ -23,14 +23,14 @@ export class TopicSubscription {
       const dispatchSubscriptions = item.subscribers.map(async sub => {
         return new Promise(async (resolve, reject) => {
           try {
-            await this.subscribe(topicExists.domain, sub);
+            await this.subscribe(topicExists._id.toString(), sub);
             resolve(true);
           } catch (error: unknown) {
             if (error instanceof AlreadySubscribedError) {
               reject({
                 statusCode: error.statusCode,
                 message: error.message,
-                payload: { subId: sub.subId, topic: topicExists.id }
+                payload: { subId: sub.subId, topic: topicExists._id.toString() }
               });
             }
           }
@@ -52,33 +52,31 @@ export class TopicSubscription {
     await Promise.all(topics);
   }
 
-  private async subscribe(topic: string, { subId }: { subId: string }) {
-    const topicSubscriptions = await this.notificationRepository.findSubscribedTopic(topic);
+  private async subscribe(topicId: string, { subId }: { subId: string }) {
+    const topicSubscriptions = await this.notificationRepository.findSubscribedTopic(topicId);
     if (!topicSubscriptions) {
       throw new TopicNotFoundError("Topic not found");
     }
 
     const subscriptionsMap = new Map<string, string>();
     topicSubscriptions.forEach(subscription => {
-      subscriptionsMap.set(subscription.subscriberId, subscription.topicId);
+      subscriptionsMap.set(subscription.subscriberId.toString(), subscription.topicId.toString());
     });
 
     if (subscriptionsMap.has(subId)) {
       throw new AlreadySubscribedError("Subscriber already subscribed to this topic");
     }
 
-    const topicId = subscriptionsMap.get(subId)!;
-    await this.prisma.subscriberTopic.create({
-      data: {
-        subscriberId: subId,
-        topicId: topicId,
-      },
+    await SubscriberTopicModel.create({
+      subscriberId: new mongoose.Types.ObjectId(subId),
+      topicId: new mongoose.Types.ObjectId(topicId),
     });
   };
 
-  private async unsubscribe(topic: string, subId: string) {
-    await this.prisma.subscriberTopic.deleteMany({
-      where: { topicId: topic, subscriberId: subId },
+  private async unsubscribe(topicId: string, subId: string) {
+    await SubscriberTopicModel.deleteMany({
+      topicId: new mongoose.Types.ObjectId(topicId),
+      subscriberId: new mongoose.Types.ObjectId(subId),
     });
   };
 }
