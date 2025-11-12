@@ -80,7 +80,7 @@ O **Confi Notifications** é um **monólito modular** que implementa um sistema 
 - **Node.js** com **TypeScript** - Runtime e linguagem
 - **Fastify** - Framework web de alta performance
 - **MongoDB** - Banco de dados NoSQL
-- **Prisma** - ORM para acesso ao banco de dados
+- **Mongoose** - ODM (Object Document Mapper) para MongoDB
 - **RabbitMQ** - Message broker para processamento assíncrono
 - **Zod** - Validação de schemas e tipos
 - **Docker & Docker Compose** - Containerização
@@ -102,7 +102,8 @@ Esta aplicação adota a arquitetura de **Monólito Modular**, uma abordagem que
 src/
 ├── core/                    # Código compartilhado (infraestrutura)
 │   ├── errors/             # Tratamento de erros customizados
-│   ├── providers/          # Provedores externos (RabbitMQ)
+│   ├── models/             # Schemas Mongoose (entidades do banco)
+│   ├── providers/          # Provedores externos (Mongoose, RabbitMQ)
 │   └── utils/              # Utilitários gerais
 ├── modules/
 │   └── notifications/      # Módulo de notificações (independente)
@@ -111,7 +112,6 @@ src/
 │       ├── repository/    # Acesso aos dados (abstraído por interfaces)
 │       ├── events/        # Event Consumers (RabbitMQ)
 │       └── errors/        # Erros de domínio específicos
-└── generated/             # Código gerado (Prisma Client)
 ```
 
 **Cada módulo é autônomo** com suas próprias rotas, lógica de negócio, repositórios e event handlers. Novos módulos podem ser adicionados sem afetar os existentes.
@@ -294,14 +294,20 @@ eventSource.onmessage = (event) => {
 
 ### Modelo de Dados
 
-O sistema utiliza 6 entidades principais no MongoDB:
+O sistema utiliza 6 entidades principais no MongoDB, modeladas com **Mongoose**:
 
-- **Subscriber**: Usuários que recebem notificações
-- **Topic**: Categorias de notificações
-- **Notification**: Conteúdo das notificações
-- **TopicNotification**: Relacionamento entre tópicos e notificações
-- **SubscriberTopic**: Inscrições de assinantes em tópicos
-- **SubscriberNotification**: Status de entrega das notificações (enviada, lida, deletada)
+- **Subscriber** (`SubscriberModel`): Usuários que recebem notificações
+- **Topic** (`TopicModel`): Categorias de notificações com domínio único
+- **Notification** (`NotificationModel`): Conteúdo das notificações
+- **TopicNotification** (`TopicNotificationModel`): Relacionamento entre tópicos e notificações
+- **SubscriberTopic** (`SubscriberTopicModel`): Inscrições de assinantes em tópicos
+- **SubscriberNotification** (`SubscriberNotificationModel`): Status de entrega das notificações (enviada, lida, deletada) com índices otimizados
+
+**Características dos Schemas:**
+- Timestamps automáticos (`createdAt`, `updatedAt`)
+- Índices únicos e compostos para performance
+- Validação de tipos com TypeScript
+- Referências entre documentos usando ObjectId
 
 ## 🚀 Como Executar
 
@@ -345,14 +351,9 @@ Serviços disponíveis:
 - RabbitMQ: `localhost:5672`
 - RabbitMQ Management UI: `http://localhost:15672` (usuário: `root`, senha: `rootpassword`)
 
-### 5. Executar migrations do Prisma
+**Nota**: O MongoDB não requer configuração de replica set, pois o Mongoose não depende dessa funcionalidade para operações básicas.
 
-```bash
-npx prisma generate
-npx prisma db push
-```
-
-### 6. Iniciar a aplicação
+### 5. Iniciar a aplicação
 
 ```bash
 npm run start:dev
@@ -496,8 +497,9 @@ npm run start:dev    # Inicia servidor em modo desenvolvimento com hot-reload
 ## 🧪 Tecnologias de Suporte
 
 - **tsx**: Execução de TypeScript com hot-reload
-- **Prisma Studio**: Interface gráfica para visualizar dados (`npx prisma studio`)
+- **Mongoose**: ODM com suporte nativo a TypeScript e validação de schemas
 - **Fastify Type Provider Zod**: Integração perfeita entre Fastify e Zod
+- **MongoDB Compass**: Interface gráfica opcional para visualizar dados do MongoDB
 
 ## 🚀 Benefícios da Arquitetura Escolhida
 
@@ -539,11 +541,14 @@ Esta arquitetura é ideal quando você quer:
 ## 📝 Observações Técnicas
 
 - **Consumers Automáticos**: Carregam ao iniciar (imports em `app.ts`)
-- **Prisma Client Customizado**: Gerado em `src/generated/prisma` para organização
+- **Mongoose Connection**: Singleton pattern com inicialização automática em `src/core/providers/mongoose`
+- **Schemas Mongoose**: Definidos em `src/core/models/` com TypeScript interfaces
+- **Buffer de Comandos**: Mongoose configurado para bufferizar comandos até conexão estar pronta
 - **Logs Simples e Estruturados**: Fastify Logger nativo para debugging
 - **Error Handling**: Erros com contexto em dev, mensagens limpas em prod
 - **Conexões SSE**: Gerenciadas em memória (Map estático)
 - **RabbitMQ**: Filas duráveis (persistem reinicializações)
+- **MongoDB**: Não requer replica set (diferente do Prisma que exigia para transações)
 
 ## 🔧 Melhorias Futuras
 
@@ -558,5 +563,5 @@ Esta arquitetura é ideal quando você quer:
 
 ---
 
-**Desenvolvido com ❤️ usando Node.js, TypeScript e Arquitetura Orientada a Eventos**
+**Desenvolvido com ❤️ usando Node.js, TypeScript, Mongoose e Arquitetura Orientada a Eventos**
 
