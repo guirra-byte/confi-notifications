@@ -1,4 +1,4 @@
-import rabbitmq from "../../../../core/providers/rabbitmq";
+import rabbitmq from "../../../../core/libs/rabbitmq";
 import notifySubscribers from "../../services/factories/make-notify-subscribers";
 
 interface NotifySubscribersRequest {

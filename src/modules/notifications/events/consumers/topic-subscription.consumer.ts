@@ -1,4 +1,4 @@
-import rabbitmq from "../../../../core/providers/rabbitmq";
+import rabbitmq from "../../../../core/libs/rabbitmq";
 import { makeTopicSubscription } from "../../services/factories/make-topic-subscription";
 
 interface TopicSubscriptionRequest {

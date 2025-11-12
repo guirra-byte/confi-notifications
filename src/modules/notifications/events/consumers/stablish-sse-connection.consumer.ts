@@ -1,5 +1,5 @@
 import { FastifyReply } from "fastify";
-import rabbitmq from "../../../../core/providers/rabbitmq";
+import rabbitmq from "../../../../core/libs/rabbitmq";
 
 // Just alias for notifySubscribers service
 import sseHandler from "../../services/factories/make-notify-subscribers"; 
