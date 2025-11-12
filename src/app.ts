@@ -1,4 +1,12 @@
-import Fastify, { FastifyError, FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import Fastify, { FastifyError, FastifyReply, FastifyRequest } from "fastify";
+import { 
+  serializerCompiler, 
+  validatorCompiler,
+  ZodTypeProvider 
+} from "fastify-type-provider-zod";
+
+// Initialize Mongoose connection
+import "./core/libs/mongoose";
 
 import "./modules/notifications/events/consumers/notify-subscribers.consumer";
 import "./modules/notifications/events/consumers/topic-subscription.consumer";
@@ -7,9 +15,13 @@ import { extractZodError, formatZodError } from "./core/utils/zod-errors";
 import { ZodError } from "zod";
 import NotificationsRoutes from "./modules/notifications/http/notifications.routes";
 
-const app: FastifyInstance = Fastify({
+const app = Fastify({
   logger: true,
-});
+}).withTypeProvider<ZodTypeProvider>();
+
+// Configurar Zod como validador e serializador
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
 
 // Global error handler for serialization errors
 app.setErrorHandler((error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
