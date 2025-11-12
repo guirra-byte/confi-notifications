@@ -10,7 +10,7 @@ import {
   TopicSubscriptionRequest,
   notificationsSchema 
 } from "./notifications.schema";
-import getRabbitMqClient from "../../../core/providers/rabbitmq";
+import getRabbitMqClient from "../../../core/libs/rabbitmq";
 
 export default async function NotificationsRoutes(app: FastifyInstance) {
   const rabbitmq = await getRabbitMqClient;
@@ -18,11 +18,11 @@ export default async function NotificationsRoutes(app: FastifyInstance) {
 
   // POST /notifications - Criar notificação
   app.post(
-    '/notifications',
+    '/',
     {
       schema: notificationsSchema.createNotification,
     },
-    (request: CreateNotificationRequest, reply: FastifyReply) => notificationsController.createNotification(request, reply)
+    async (request: CreateNotificationRequest, reply: FastifyReply) => await notificationsController.createNotification(request, reply)
   );
 
   // POST /topics - Criar tópico
@@ -31,7 +31,7 @@ export default async function NotificationsRoutes(app: FastifyInstance) {
     {
       schema: notificationsSchema.createTopic,
     },
-    (request: CreateTopicRequest, reply: FastifyReply) => notificationsController.createTopic(request, reply)
+    async (request: CreateTopicRequest, reply: FastifyReply) => await notificationsController.createTopic(request, reply)
   );
 
   // DELETE /notifications - Deletar notificações
@@ -40,7 +40,7 @@ export default async function NotificationsRoutes(app: FastifyInstance) {
     {
       schema: notificationsSchema.deleteNotifications,
     },
-    (request: DeleteNotificationsRequest, reply: FastifyReply) => notificationsController.deleteNotifications(request, reply)
+    async (request: DeleteNotificationsRequest, reply: FastifyReply) => await notificationsController.deleteNotifications(request, reply)
   );
 
   // POST /notifications/search - Buscar notificações do usuário
@@ -49,7 +49,7 @@ export default async function NotificationsRoutes(app: FastifyInstance) {
     {
       schema: notificationsSchema.fetchAllUserNotifications,
     },
-    (request: FetchAllUserNotificationsRequest, reply: FastifyReply) => notificationsController.fetchAllUserNotifications(request, reply)
+    async (request: FetchAllUserNotificationsRequest, reply: FastifyReply) => await notificationsController.fetchAllUserNotifications(request, reply)
   );
 
   // PATCH /notifications/read - Marcar notificações como lidas
@@ -58,7 +58,7 @@ export default async function NotificationsRoutes(app: FastifyInstance) {
     {
       schema: notificationsSchema.markAsRead,
     },
-    (request: MarkAsReadRequest, reply: FastifyReply) => notificationsController.markAsRead(request, reply)
+    async (request: MarkAsReadRequest, reply: FastifyReply) => await notificationsController.markAsRead(request, reply)
   );
 
   // POST /notifications/notify - Disparar notificações para clientes SSE conectados (Fila RabbitMQ)
@@ -67,7 +67,7 @@ export default async function NotificationsRoutes(app: FastifyInstance) {
     {
       schema: notificationsSchema.notifySubscribers,
     },
-    (request: NotifySubscribersRequest, reply: FastifyReply) => notificationsController.notifySubscribers(request, reply)
+    async (request: NotifySubscribersRequest, reply: FastifyReply) => await notificationsController.notifySubscribers(request, reply)
   );
 
   // POST /topics/subscribe - Inscrever assinantes em um tópico
@@ -76,7 +76,7 @@ export default async function NotificationsRoutes(app: FastifyInstance) {
     {
       schema: notificationsSchema.topicSubscription,
     },
-    (request: TopicSubscriptionRequest, reply: FastifyReply) => notificationsController.topicSubscription(request, reply)
+    async (request: TopicSubscriptionRequest, reply: FastifyReply) => await notificationsController.topicSubscription(request, reply)
   );
 }
 

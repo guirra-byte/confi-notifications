@@ -27,6 +27,7 @@ export default class NotificationsController {
   async notifySubscribers(request: NotifySubscribersRequest, reply: FastifyReply) {
     try {
       const { topicId, notificationId } = request.body;
+      reply.status(200).send({ message: 'Notification sent' });
 
       const confirmChannel = await this.rabbitmq.connection.createConfirmChannel();
       confirmChannel.assertQueue('notify-subscriber', { durable: true });
@@ -36,7 +37,6 @@ export default class NotificationsController {
         throw new RabbitMqMessageNotSentError(`[NOTIFY_SUBSCRIBER][topicId: ${topicId}, notificationId: ${notificationId}]`);
       }
 
-      return reply.status(200).send({ message: 'Notification sent' });
     }
     catch (error) {
       console.error('Error in notifySubscribers:', error);
@@ -59,6 +59,7 @@ export default class NotificationsController {
   async topicSubscription(request: TopicSubscriptionRequest, reply: FastifyReply) {
     try {
       const { domain, subscribers } = request.body;
+      reply.status(200).send({ message: 'Topic subscription sent' });
 
       const confirmChannel = await this.rabbitmq.connection.createConfirmChannel();
       this.rabbitmq.channel.assertQueue('topic-subscription', { durable: true });
@@ -68,7 +69,6 @@ export default class NotificationsController {
         throw new RabbitMqMessageNotSentError(`[TOPIC_SUBSCRIPTION][domain: ${domain}, subscribers: ${subscribers.map(sub => sub.subId).join(', ')}]`);
       }
 
-      return reply.status(200).send({ message: 'Topic subscription sent' });
     }
     catch (error) {
       console.error('Error in topicSubscription:', error);
